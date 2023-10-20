@@ -1,0 +1,166 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Stack para observabilidade na AWS
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: ID da VPC
+
+Resources:
+  MyKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: srv_obs_2023
+
+  MyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: EC2RoleForSSM
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: EC2PolicyForSSM
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ssm:UpdateInstanceInformation
+                  - ssm:ListCommands
+                  - ssm:DescribeInstanceProperties
+                  - ssm:InvalidateLastUpdateDateTime
+                  - ssm:DescribeDocument
+                  - ssm:GetManifest
+                  - ssm:GetMessages
+                  - ssm:SendReply
+                  - ec2messages:AcknowledgeMessage
+                  - ec2messages:DeleteMessage
+                  - ec2messages:FailMessage
+                  - ec2:DescribeInstanceStatus
+                  - ec2:DescribeInstanceAttribute
+                  - ec2:DescribeInstanceStatus
+                  - ec2:DescribeInstances
+                Resource: '*'
+
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Habilita acesso via SSH e HTTP
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9090
+          ToPort: 9090
+          CidrIp: 0.0.0.0/0
+
+  MyInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref MyRole
+
+  MyContainer:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0fc5d935ebf8bc3bc
+      InstanceType: t2.micro
+      KeyName: srv_obs_2023
+      IamInstanceProfile: !Ref MyInstanceProfile
+      SecurityGroupIds:
+        - !Ref MySecurityGroup
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          sudo -i
+          apt-get update -y
+          apt-get install -y docker.io
+          usermod -aG docker ubuntu
+          systemctl enable docker
+          curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
+
+          cd ~
+          touch docker-compose.yml
+
+          cat << 'EOF' > docker-compose.yml
+          version: '3'
+          services:
+            prometheus:
+              image: prom/prometheus:v2.46.0
+              ports:
+                - 9090:9090
+              networks:
+                - backend
+              volumes:
+                - ./prometheus:/etc/prometheus
+                - prometheus-data:/prometheus
+              command: --web.enable-lifecycle --config.file=/etc/prometheus/prometheus.yml
+          
+          volumes:
+            prometheus-data:
+          
+          networks:
+            backend:
+          EOF
+
+          mkdir -p ~/prometheus
+          cd ~/prometheus
+          touch alert.yml prometheus.yml
+
+          cat << 'EOF' > prometheus.yml
+
+          global:
+            scrape_interval:     10s
+            evaluation_interval: 10s
+
+          rule_files:
+            - 'alert.yml'
+
+          alerting:
+            alertmanagers:
+            - scheme: http
+              static_configs:
+              - targets:
+                - "alertmanager:9093"
+
+          scrape_configs:
+            - job_name: 'node'
+              scrape_interval: 5s
+              static_configs:
+                      - targets: ['localhost:9090','cadvisor:8080','node-exporter:9100']
+            - job_name: 'netdata'
+              metrics_path: '/api/v1/allmetrics'
+              params:
+                format: [prometheus]
+              honor_labels: true
+              scrape_interval: 5s
+              static_configs:
+                  - targets: ['YOUR_NETDATA_IP:19999']
+
+          EOF
+
+          cat << 'EOF' > alert.yml
+
+          groups:
+            - name: DemoAlerts
+              rules:
+                - alert: InstanceDown
+                  expr: up{job="services"} < 1
+                  for: 5m
+
+          EOF
+          mkdir -p ~/grafana
+          sudo docker-compose up -d
