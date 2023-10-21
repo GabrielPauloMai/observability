@@ -30,14 +30,20 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - ssm:UpdateInstanceInformation
-                  - ssm:ListCommands
-                  - ssm:DescribeInstanceProperties
-                  - ssm:InvalidateLastUpdateDateTime
+                  - ssm:DescribeAssociation
+                  - ssm:GetDeployablePatchSnapshotForInstance
+                  - ssm:GetDocument
                   - ssm:DescribeDocument
                   - ssm:GetManifest
-                  - ssm:GetMessages
-                  - ssm:SendReply
+                  - ssm:GetParameters
+                  - ssm:ListAssociations
+                  - ssm:ListInstanceAssociations
+                  - ssm:PutInventory
+                  - ssm:PutComplianceItems
+                  - ssm:PutConfigurePackageResult
+                  - ssm:UpdateAssociationStatus
+                  - ssm:UpdateInstanceAssociationStatus
+                  - ssm:UpdateInstanceInformation
                   - ec2messages:AcknowledgeMessage
                   - ec2messages:DeleteMessage
                   - ec2messages:FailMessage
@@ -50,16 +56,20 @@ Resources:
   MySecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Habilita acesso via SSH e HTTP
+      GroupDescription: Habilita acesso ao servidor
       VpcId: !Ref VpcId
       SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
-          FromPort: 9090
-          ToPort: 9090
+          FromPort: 9000
+          ToPort: 9000
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
           FromPort: 3000
@@ -109,18 +119,8 @@ Resources:
           sudo docker-compose up -d
   
 Outputs:
-  KeyPair:
-    Description: Chave para acesso ao servidor
-    Value: !Ref MyKeyPair
-    Export:
-      Name: KeyPair
-
   InstanceIp:
     Description: IP da instancia
     Value: !GetAtt MyContainer.PublicIp
     Export:
       Name: InstanceIp
-
-
-
-        
