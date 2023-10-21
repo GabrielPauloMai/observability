@@ -103,7 +103,7 @@ Resources:
 
           cd ~
 
-          curl -s "https://github.com/GabrielPauloMai/observability/cloudformation/" -o 
+          curl -L "https://github.com/GabrielPauloMai/observability/archive/master.tar.gz" | tar -xz --strip-components=2 "observability-master/cloudformation"
 
           
           sudo docker-compose up -d
