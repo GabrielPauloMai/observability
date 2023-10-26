@@ -115,7 +115,8 @@ Resources:
 
           curl -L "https://github.com/GabrielPauloMai/observability/archive/master.tar.gz" | tar -xz --strip-components=2 "observability-master/cloudformation"
 
-          
+          docker build -f Dockerfile . -t quinto-exporter:0.1
+
           sudo docker-compose up -d
   
 Outputs:

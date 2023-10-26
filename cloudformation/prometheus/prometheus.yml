@@ -25,3 +25,8 @@ scrape_configs:
     scrape_interval: 5s
     static_configs:
          - targets: ['YOUR_NETDATA_IP:19999']
+        
+  - job_name: "Quinto Exporter" # Nome do job que vai coletar as métricas do primeiro exporter.
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['apiastronauta:8895'] # Endereço do alvo monitorado, ou seja, o nosso primeiro exporter.

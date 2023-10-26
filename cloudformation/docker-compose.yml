@@ -56,6 +56,13 @@ services:
         - 80:80
     networks:
         - backend
+  
+  apiastronauta:
+    image: quinto-exporter:0.1
+    ports:
+      - 8895:8895
+    networks:
+      - backend
 
 volumes:
   prometheus-data:
