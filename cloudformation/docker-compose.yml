@@ -57,15 +57,9 @@ services:
     networks:
         - backend
   
-  apiastronauta:
-    image: quinto-exporter:0.1
-    ports:
-      - 8895:8895
-    networks:
-      - backend
 
   apipython:
-    image: quartoexporter:0.1
+    image: quinto-exporter:0.1
     ports:
       - 8888:8888
     networks:
