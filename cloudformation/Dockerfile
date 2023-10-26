@@ -12,4 +12,4 @@ COPY . .
 RUN pip3 install -r requirements
 
 # Executando o exporter
-CMD python3 exporter.py exporter_chamada_http.py
+CMD python3 exporter_chamada_http.py
