@@ -30,3 +30,8 @@ scrape_configs:
     scrape_interval: 5s
     static_configs:
       - targets: ['apiastronauta:8895'] # Endereço do alvo monitorado, ou seja, o nosso primeiro exporter.
+  
+  - job_name: "Segundo Exporter" # Nome do job que vai coletar as métricas do primeiro exporter.
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['apipython:9000'] # Endereço do alvo monitorado, ou seja, o nosso primeiro exporter.

@@ -64,6 +64,14 @@ services:
     networks:
       - backend
 
+  apipython:
+    image: quartoexporter:0.1
+    ports:
+      - 8888:8888
+    networks:
+      - backend
+
+
 volumes:
   prometheus-data:
   grafana-data:
