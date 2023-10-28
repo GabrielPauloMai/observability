@@ -40,6 +40,10 @@ Resources:
           FromPort: 8080
           ToPort: 8080
           CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9000
+          ToPort: 9000
+          CidrIp: 0.0.0.0/0
 
 
 
@@ -67,6 +71,8 @@ Resources:
           curl -L "https://github.com/GabrielPauloMai/observability/archive/master.tar.gz" | tar -xz --strip-components=2 "observability-master/cloudformation"
 
           sudo sysctl -w vm.max_map_count=262144
+
+          export INSTANCE_IP=$(!GetAtt MyContainer.PublicIp)
 
           sudo docker-compose up -d
 

@@ -59,22 +59,14 @@ services:
     logging:
       driver: gelf
       options:
-        gelf-address: "tcp://IP_ADDRESS_GRAYLOG:12201"
+        gelf-address: "tcp://$INSTANCE_IP:12201"
         tag: nginxdeploy
 
   mongo:
     image: mongo
-    ports:
-      - 27017:27017
-    networks:
-      - backend
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.8.5
-    ports:
-      - 9200:9200
-    networks:
-      - backend
     environment:
       - "http.host=0.0.0.0"
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
@@ -88,14 +80,12 @@ services:
       - 1514:1514/udp
     networks:
       - backend
+    restart: always
+    links:
+      - mongo
+      - elasticsearch
     environment:
-      - link=mongo
-      - link=elasticsearch
-      - restart=always
-      - GRAYLOG_HTTP_EXTERNAL_URI=http://!ImportValue InstanceIp:9000/
-      - GRAYLOG_ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - GRAYLOG_ELASTICSEARCH_INDEX_PREFIX=graylog
-      - GRAYLOG_ROOT_TIMEZONE=America/Sao_Paulo
+      - GRAYLOG_HTTP_EXTERNAL_URI=http://$INSTANCE_IP:9000/
 
   # apipython:
   #   image: quinto-exporter:0.1
