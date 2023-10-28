@@ -56,11 +56,6 @@ services:
         - 80:80
     networks:
         - backend
-    logging:
-      driver: gelf
-      options:
-        gelf-address: "tcp://graylog:12201"
-        tag: nginxdeploy
 
   mongo:
     image: mongo
@@ -90,6 +85,16 @@ services:
       - elasticsearch
     environment:
       - GRAYLOG_HTTP_EXTERNAL_URI=http://${INSTANCE_IP}:9000/
+
+  web:
+    image: nginx
+    ports:
+      - 8888:80
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "tcp://${GRAYLOG_IP}:12201"
+        tag: nginxdeploy
 
 
 volumes:
