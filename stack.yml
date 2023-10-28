@@ -1,20 +1,12 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Stack para observabilidade na AWS
 
-Parameters:
-  VpcId:
-    Type: AWS::EC2::VPC::Id
-    Description: ID da VPC
-
 Resources:
-
-
 
   MySecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Habilita acesso ao servidor
-      VpcId: !Ref VpcId
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
@@ -71,6 +63,8 @@ Resources:
           curl -L "https://github.com/GabrielPauloMai/observability/archive/master.tar.gz" | tar -xz --strip-components=2 "observability-master/cloudformation"
 
           sudo sysctl -w vm.max_map_count=262144
+
+          echo "INSTANCE_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)" > .env
 
           export INSTANCE_IP=$(!GetAtt MyContainer.PublicIp)
 

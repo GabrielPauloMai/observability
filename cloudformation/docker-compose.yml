@@ -56,20 +56,24 @@ services:
         - 80:80
     networks:
         - backend
-    # logging:
-    #   driver: gelf
-    #   options:
-    #     gelf-address: "tcp://$INSTANCE_IP:12201"
-    #     tag: nginxdeploy
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "tcp://graylog:12201"
+        tag: nginxdeploy
 
   mongo:
     image: mongo
+    networks:
+      - backend
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.8.5
     environment:
       - "http.host=0.0.0.0"
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    networks:
+      - backend
 
   graylog:
     image: graylog/graylog:4.0
@@ -84,15 +88,8 @@ services:
     links:
       - mongo
       - elasticsearch
-    # environment:
-    #   - GRAYLOG_HTTP_EXTERNAL_URI=http://$INSTANCE_IP:9000/
-
-  # apipython:
-  #   image: quinto-exporter:0.1
-  #   ports:
-  #     - 8888:8888
-  #   networks:
-  #     - backend
+    environment:
+      - GRAYLOG_HTTP_EXTERNAL_URI=http://${INSTANCE_IP}:9000/
 
 
 volumes:
