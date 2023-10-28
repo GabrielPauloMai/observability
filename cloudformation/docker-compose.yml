@@ -56,11 +56,11 @@ services:
         - 80:80
     networks:
         - backend
-    logging:
-      driver: gelf
-      options:
-        gelf-address: "tcp://$INSTANCE_IP:12201"
-        tag: nginxdeploy
+    # logging:
+    #   driver: gelf
+    #   options:
+    #     gelf-address: "tcp://$INSTANCE_IP:12201"
+    #     tag: nginxdeploy
 
   mongo:
     image: mongo
@@ -84,8 +84,8 @@ services:
     links:
       - mongo
       - elasticsearch
-    environment:
-      - GRAYLOG_HTTP_EXTERNAL_URI=http://$INSTANCE_IP:9000/
+    # environment:
+    #   - GRAYLOG_HTTP_EXTERNAL_URI=http://$INSTANCE_IP:9000/
 
   # apipython:
   #   image: quinto-exporter:0.1
