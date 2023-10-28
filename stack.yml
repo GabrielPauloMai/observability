@@ -7,51 +7,8 @@ Parameters:
     Description: ID da VPC
 
 Resources:
-  MyKeyPair:
-    Type: AWS::EC2::KeyPair
-    Properties:
-      KeyName: srv_obs_2023
 
-  MyRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: EC2RoleForSSM
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: ec2.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: EC2PolicyForSSM
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - ssm:DescribeAssociation
-                  - ssm:GetDeployablePatchSnapshotForInstance
-                  - ssm:GetDocument
-                  - ssm:DescribeDocument
-                  - ssm:GetManifest
-                  - ssm:GetParameters
-                  - ssm:ListAssociations
-                  - ssm:ListInstanceAssociations
-                  - ssm:PutInventory
-                  - ssm:PutComplianceItems
-                  - ssm:PutConfigurePackageResult
-                  - ssm:UpdateAssociationStatus
-                  - ssm:UpdateInstanceAssociationStatus
-                  - ssm:UpdateInstanceInformation
-                  - ec2messages:AcknowledgeMessage
-                  - ec2messages:DeleteMessage
-                  - ec2messages:FailMessage
-                  - ec2:DescribeInstanceStatus
-                  - ec2:DescribeInstanceAttribute
-                  - ec2:DescribeInstanceStatus
-                  - ec2:DescribeInstances
-                Resource: '*'
+
 
   MySecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -68,8 +25,8 @@ Resources:
           ToPort: 80
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
-          FromPort: 9000
-          ToPort: 9000
+          FromPort: 9090
+          ToPort: 9090
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
           FromPort: 3000
@@ -85,19 +42,13 @@ Resources:
           CidrIp: 0.0.0.0/0
 
 
-  MyInstanceProfile:
-    Type: AWS::IAM::InstanceProfile
-    Properties:
-      Roles:
-        - !Ref MyRole
+
 
   MyContainer:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: ami-0fc5d935ebf8bc3bc
-      InstanceType: t2.micro
-      KeyName: srv_obs_2023
-      IamInstanceProfile: !Ref MyInstanceProfile
+      ImageId: ami-008d819eefb4b5ee4
+      InstanceType: t2.medium
       SecurityGroupIds:
         - !Ref MySecurityGroup
       UserData:
@@ -115,9 +66,11 @@ Resources:
 
           curl -L "https://github.com/GabrielPauloMai/observability/archive/master.tar.gz" | tar -xz --strip-components=2 "observability-master/cloudformation"
 
-          docker build -f Dockerfile . -t quinto-exporter:0.1
+          sudo sysctl -w vm.max_map_count=262144
 
           sudo docker-compose up -d
+
+          
   
 Outputs:
   InstanceIp:

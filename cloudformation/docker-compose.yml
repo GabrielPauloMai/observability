@@ -3,7 +3,7 @@ services:
   prometheus:
     image: prom/prometheus:v2.46.0
     ports:
-      - 9000:9090
+      - 9090:9090
     networks:
       - backend
     volumes:
@@ -56,14 +56,53 @@ services:
         - 80:80
     networks:
         - backend
-  
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "tcp://IP_ADDRESS_GRAYLOG:12201"
+        tag: nginxdeploy
 
-  apipython:
-    image: quinto-exporter:0.1
+  mongo:
+    image: mongo
     ports:
-      - 8888:8888
+      - 27017:27017
     networks:
       - backend
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.8.5
+    ports:
+      - 9200:9200
+    networks:
+      - backend
+    environment:
+      - "http.host=0.0.0.0"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+  graylog:
+    image: graylog/graylog:4.0
+    ports:
+      - 9000:9000
+      - 12201:12201
+      - 1514:1514
+      - 1514:1514/udp
+    networks:
+      - backend
+    environment:
+      - link=mongo
+      - link=elasticsearch
+      - restart=always
+      - GRAYLOG_HTTP_EXTERNAL_URI=http://!ImportValue InstanceIp:9000/
+      - GRAYLOG_ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - GRAYLOG_ELASTICSEARCH_INDEX_PREFIX=graylog
+      - GRAYLOG_ROOT_TIMEZONE=America/Sao_Paulo
+
+  # apipython:
+  #   image: quinto-exporter:0.1
+  #   ports:
+  #     - 8888:8888
+  #   networks:
+  #     - backend
 
 
 volumes:
