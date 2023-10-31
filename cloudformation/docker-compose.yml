@@ -56,12 +56,6 @@ services:
         - 80:80
     networks:
         - backend
-    logging:
-      driver: gelf
-      options:
-        gelf-address: "udp://${GRAYLOG_IP}:12201"
-        tag: nginxdeploy
-
 
   mongo:
     image: mongo
@@ -79,10 +73,11 @@ services:
   graylog:
     image: graylog/graylog:4.0
     ports:
-      - 9000:9000
-      - 12201:12201
-      - 1514:1514
-      - 1514:1514/udp
+      - "9000:9000"
+      - "12201:12201"
+      - "12201:12201/udp"
+      - "1514:1514"
+      - "1514:1514/udp"
     networks:
       - backend
     restart: always

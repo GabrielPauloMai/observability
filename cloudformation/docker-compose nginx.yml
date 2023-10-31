@@ -1,0 +1,22 @@
+version: '3'
+services:
+  nginx:
+    image: nginx
+    ports:
+        - 80:80
+    networks:
+        - backend
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "tcp://${GRAYLOG_IP}:12201"
+        tag: nginxdeploy
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  alertmanager-data:
+
+networks:
+  frontend:
+  backend:
